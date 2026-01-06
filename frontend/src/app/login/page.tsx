@@ -17,7 +17,7 @@ export default function LoginPage() {
     e.preventDefault();
     try {
       // 백엔드 주소 확인 필수
-      const response = await axios.post('${API_URL}/api/users/login', {
+      const response = await axios.post(`${API_URL}/api/users/login`, {
         email: email,
         password: password
       });
