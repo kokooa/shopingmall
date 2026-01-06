@@ -33,7 +33,7 @@ export default function CartPage() {
       }
 
       try {
-        const response = await axios.get(`http://localhost:4000/api/cart/${userId}`);
+        const response = await axios.get(`https://shopingmall.onrender.com/api/cart/${userId}`);
         if (response.data && response.data.items) {
             setCartItems(response.data.items);
         }
@@ -50,7 +50,7 @@ export default function CartPage() {
   const removeItem = async (itemId: number) => {
     if (!confirm("정말 삭제하시겠습니까?")) return;
     try {
-        await axios.delete(`http://localhost:4000/api/cart/${itemId}`);
+        await axios.delete(`https://shopingmall.onrender.com/api/cart/${itemId}`);
         setCartItems(prev => prev.filter(item => item.id !== itemId));
     } catch (error) {
         alert("삭제 실패");
@@ -71,7 +71,7 @@ export default function CartPage() {
         ));
 
         // (2) 백엔드에 조용히 저장
-        await axios.patch(`http://localhost:4000/api/cart/${itemId}`, {
+        await axios.patch(`https://shopingmall.onrender.com/api/cart/${itemId}`, {
             quantity: newQty
         });
 

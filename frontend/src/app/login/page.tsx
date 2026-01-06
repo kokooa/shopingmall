@@ -14,7 +14,7 @@ export default function LoginPage() {
     e.preventDefault();
     try {
       // 백엔드 주소 확인 필수
-      const response = await axios.post('http://localhost:4000/api/users/login', {
+      const response = await axios.post('https://shopingmall.onrender.com/api/users/login', {
         email: email,
         password: password
       });

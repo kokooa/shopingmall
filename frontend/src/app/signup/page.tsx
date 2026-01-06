@@ -24,7 +24,7 @@ export default function SignupPage() {
 
     try {
       // ⭐ 백엔드(8080)로 회원가입 요청 발사!
-      const response = await axios.post('http://localhost:4000/api/users/signup', {
+      const response = await axios.post('https://shopingmall.onrender.com/api/users/signup', {
         name: name,
         email: email,
         password: password

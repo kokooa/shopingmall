@@ -22,7 +22,7 @@ export default function AdminUploadPage() {
     e.preventDefault();
     try {
       // 백엔드로 전송
-      await axios.post('http://localhost:4000/api/products', formData);
+      await axios.post('https://shopingmall.onrender.com/api/products', formData);
       alert('상품이 등록되었습니다!');
       router.push('/products/all'); // 등록 후 목록으로 이동
     } catch (error) {

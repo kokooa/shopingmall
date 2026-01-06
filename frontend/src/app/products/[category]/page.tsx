@@ -28,8 +28,8 @@ export default function CategoryPage() {
       try {
         setLoading(true);
         // category가 'all'이면 전체 조회, 아니면 해당 카테고리만 조회
-        // 백엔드 API: GET http://localhost:4000/api/products?category=...
-        const response = await axios.get(`http://localhost:4000/api/products`, {
+        // 백엔드 API: GET https://shopingmall.onrender.com/api/products?category=...
+        const response = await axios.get(`https://shopingmall.onrender.com/api/products`, {
           params: { category: categoryName }
         });
         

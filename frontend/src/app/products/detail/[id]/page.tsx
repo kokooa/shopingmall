@@ -25,7 +25,7 @@ export default function ProductDetailPage() {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const response = await axios.get(`http://localhost:4000/api/products/${productId}`);
+        const response = await axios.get(`https://shopingmall.onrender.com/api/products/${productId}`);
         setProduct(response.data);
       } catch (error) {
         console.error("상품 조회 실패:", error);
@@ -49,7 +49,7 @@ export default function ProductDetailPage() {
 
     try {
         // 2. 백엔드 API 호출 (POST /api/cart)
-        await axios.post('http://localhost:4000/api/cart', {
+        await axios.post('https://shopingmall.onrender.com/api/cart', {
             userId: Number(userId),
             productId: Number(productId),
             quantity: 1 
