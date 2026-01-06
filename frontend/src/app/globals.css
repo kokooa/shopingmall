@@ -1,0 +1,23 @@
+@import "tailwindcss";
+
+/* 👇 :root에는 무조건 "흰색 테마" 색상만 남깁니다. */
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+/* 👇 @media (prefers-color-scheme: dark) ... 이 부분은 아예 지워버리세요! */
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+/* 👇 혹시 모를 상황 대비용 강제 고정 (!important) */
+body {
+  background: white !important;
+  color: black !important;
+  font-family: Arial, Helvetica, sans-serif;
+}
