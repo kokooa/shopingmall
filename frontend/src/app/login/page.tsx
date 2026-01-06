@@ -5,16 +5,19 @@ import Link from 'next/link';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       // 백엔드 주소 확인 필수
-      const response = await axios.post('https://shopingmall.onrender.com/api/users/login', {
+      const response = await axios.post('${API_URL}/api/users/login', {
         email: email,
         password: password
       });
