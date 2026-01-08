@@ -4,6 +4,8 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 export default function AdminUploadPage() {
   const router = useRouter();
   const [formData, setFormData] = useState({
@@ -22,7 +24,7 @@ export default function AdminUploadPage() {
     e.preventDefault();
     try {
       // 백엔드로 전송
-      await axios.post('https://shopingmall.onrender.com/api/products', formData);
+      await axios.post('${API_URL}/api/products', formData);
       alert('상품이 등록되었습니다!');
       router.push('/products/all'); // 등록 후 목록으로 이동
     } catch (error) {

@@ -14,6 +14,8 @@ interface Product {
   description: string;
 }
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 export default function ProductDetailPage() {
   const params = useParams();
   const router = useRouter(); // 이동 도구
@@ -25,7 +27,7 @@ export default function ProductDetailPage() {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const response = await axios.get(`https://shopingmall.onrender.com/api/products/${productId}`);
+        const response = await axios.get(`${API_URL}/api/products/${productId}`);
         setProduct(response.data);
       } catch (error) {
         console.error("상품 조회 실패:", error);
@@ -49,7 +51,7 @@ export default function ProductDetailPage() {
 
     try {
         // 2. 백엔드 API 호출 (POST /api/cart)
-        await axios.post('https://shopingmall.onrender.com/api/cart', {
+        await axios.post('${API_URL}/api/cart', {
             userId: Number(userId),
             productId: Number(productId),
             quantity: 1 

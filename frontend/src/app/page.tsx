@@ -6,74 +6,66 @@ import { useRouter } from 'next/navigation';
 
 export default function Home() {
   const router = useRouter();
-  // 로그인 상태 관리 (처음엔 로그인 안 된 상태로 가정)
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // 페이지가 로드되면 토큰이 있는지 확인
   useEffect(() => {
     const token = localStorage.getItem('accessToken');
-    // 토큰이 있으면 로그인 된 상태로 변경
     if (token) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsLoggedIn(true);
     }
   }, []);
 
-  // 로그아웃 함수
   const handleLogout = () => {
-    // 저장된 토큰과 유저 정보 삭제
     localStorage.removeItem('accessToken');
     localStorage.removeItem('userId');
-    
     alert("로그아웃 되었습니다.");
-    setIsLoggedIn(false); // 상태 변경
-    window.location.reload(); // 깔끔하게 새로고침
+    setIsLoggedIn(false);
+    window.location.reload();
   };
 
   return (
-    <div className="bg-white min-h-screen font-sans text-gray-900">
+    <div className="bg-white min-h-screen font-sans">
       
-      {/* 1. 상단 네비게이션 바 */}
-      <nav className="fixed w-full z-20 top-0 bg-white/90 backdrop-blur-sm border-b border-gray-200">
+      {/* 1. 네비게이션 바 */}
+      <nav className="fixed w-full z-50 top-0 bg-gradient-to-b from-black/60 to-transparent border-b border-white/10 text-white">
         <div className="container flex items-center justify-between px-6 py-4 mx-auto">
-          <Link href="/" className="text-2xl font-bold text-gray-800 hover:text-blue-600 transition">
-            My Shop
+          <Link href="/" className="text-xl font-bold hover:text-gray-300 transition">
+            쇼핑몰 예시 페이지입니다
           </Link>
           
-          <div className="hidden md:flex space-x-8 font-medium text-gray-600">
-              <Link href="/products/all" className="hover:text-black transition">ALL</Link>
-              <Link href="/products/outer" className="hover:text-black transition">OUTER</Link>
-              <Link href="/products/top" className="hover:text-black transition">TOP</Link>
-              <Link href="/products/bottom" className="hover:text-black transition">BOTTOM</Link>
+          <div className="hidden md:flex space-x-8 text-sm font-medium">
+              <Link href="/products/all" className="hover:text-gray-300 transition">ALL</Link>
+              <Link href="/products/outer" className="hover:text-gray-300 transition">OUTER</Link>
+              <Link href="/products/top" className="hover:text-gray-300 transition">TOP</Link>
+              <Link href="/products/bottom" className="hover:text-gray-300 transition">BOTTOM</Link>
           </div>
           
           <div className="flex items-center space-x-4">
-            
-            {/* ⭐ [추가됨] 장바구니 아이콘 버튼 */}
-            <Link href="/cart" className="text-gray-600 hover:text-black transition relative group">
-                <div className="p-2 rounded-full hover:bg-gray-100">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+             <Link href="/cart" className="hover:text-gray-300 transition relative group">
+                <div className="p-2 rounded-full hover:bg-white/10">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
                     </svg>
                 </div>
             </Link>
 
-            {/* 기존 로그인/로그아웃 버튼 로직 */}
             {isLoggedIn ? (
               <>
+                 <span className="text-xs hidden sm:inline opacity-80">환영합니다</span>
                  <button 
                    onClick={handleLogout}
-                   className="px-4 py-2 text-sm font-medium text-gray-700 transition-colors duration-300 transform rounded-lg hover:bg-gray-100 border border-gray-200"
+                   className="px-3 py-1.5 text-xs font-medium transition-colors duration-300 transform rounded border border-white/50 hover:bg-white/10"
                  >
                    로그아웃
                  </button>
               </>
             ) : (
               <>
-                <Link href="/login" className="px-4 py-2 text-sm font-medium text-gray-700 transition-colors duration-300 transform rounded-lg hover:bg-gray-100">
+                <Link href="/login" className="px-3 py-1.5 text-xs font-medium transition-colors duration-300 transform rounded hover:bg-white/10">
                   로그인
                 </Link>
-                <Link href="/signup" className="px-4 py-2 text-sm font-medium text-white transition-colors duration-300 transform bg-blue-600 rounded-lg hover:bg-blue-500 shadow-md">
+                <Link href="/signup" className="px-3 py-1.5 text-xs font-medium text-white transition-colors duration-300 transform bg-blue-600 rounded hover:bg-blue-500 shadow-sm">
                   회원가입
                 </Link>
               </>
@@ -82,60 +74,74 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* 2. 메인 배너 */}
-      <section className="pt-32 pb-12 bg-gray-50">
-        <div className="container px-6 mx-auto text-center">
-          <div className="max-w-2xl mx-auto">
-            <h1 className="text-4xl font-bold text-gray-800 md:text-5xl leading-tight">
-              백엔드 개발자가 만든<br />
-              <span className="text-blue-600">가장 완벽한 쇼핑몰</span>
+      {/* ⭐ 2. 메인 배너 (Hero Section) ⭐ */}
+      <section className="relative w-full h-screen flex items-center justify-center bg-gray-900 overflow-hidden">
+        
+        {/* 배경 이미지 (고정) */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img 
+          className="absolute inset-0 w-full h-full object-cover object-center"
+          src="https://images.unsplash.com/photo-1483985988355-763728e1935b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80"
+          alt="Shopping Banner" 
+        />
+        
+        {/* 그라데이션 */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+
+        {/* 텍스트 컨텐츠: mt-32 추가로 위치를 아래로 내림 */}
+        <div className="relative z-10 container px-6 mx-auto text-center text-white mt-50 pb-10">
+          <div className="max-w-3xl mx-auto">
+            {/* 제목 */}
+            <h1 className="text-3xl md:text-5xl font-bold leading-tight tracking-tight">
+              <span className="block text-black-500 mb-2 text-xl md:text-2xl font-semibold">Backend 출신의 Full Stack engineer</span>
+              당신만의 개성있는 쇼핑몰을 만들어보세요
             </h1>
-            <p className="mt-6 text-gray-500 text-lg">
-              Next.js 프론트엔드와 Express 백엔드의 강력한 연동.<br/>
-              빠르고 안정적인 쇼핑 경험을 제공합니다.
+            
+            {/* 설명글 */}
+            <p className="mt-6 text-gray-200 text-base md:text-xl leading-relaxed font-normal opacity-90">
+              최신 기술 Stack을 사용해 최적화된 서비스를 제공합니다<br/>
+              Backend 로직 구현을 통한 보안 까지.
             </p>
-            <div className="mt-8 flex justify-center gap-4">
-               <Link href="/products/all" className="px-8 py-3 font-medium text-white transition duration-300 transform bg-blue-600 rounded-full hover:bg-blue-500 hover:scale-105 shadow-lg">
+            
+            {/* 버튼 */}
+            <div className="mt-10 flex flex-col sm:flex-row justify-center gap-4">
+               <Link href="/products/all" className="px-8 py-3 text-base font-semibold text-white transition duration-300 transform bg-blue-600 rounded-full hover:bg-blue-500 hover:scale-105 shadow-lg">
                   쇼핑 시작하기
                </Link>
+               {!isLoggedIn && (
+                <Link href="/signup" className="px-8 py-3 text-base font-semibold text-white transition duration-300 transform border border-white/70 rounded-full hover:bg-white hover:text-black hover:scale-105">
+                    회원가입
+                </Link>
+               )}
             </div>
-          </div>
-          
-          <div className="flex justify-center mt-12">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img 
-              className="object-cover w-full h-64 sm:h-96 rounded-2xl shadow-2xl lg:w-4/5" 
-              src="https://images.unsplash.com/photo-1483985988355-763728e1935b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1470&q=80" 
-              alt="Shopping Banner" 
-            />
           </div>
         </div>
       </section>
 
-      {/* 3. 상품 목록 예시 */}
-      <section className="bg-white py-16">
+      {/* 3. 상품 목록 예시 (유지) */}
+      <section className="bg-white py-20">
         <div className="container px-6 mx-auto">
-            <h2 className="text-3xl font-bold text-gray-800 mb-8 text-center">
+            <h2 className="text-2xl font-bold text-gray-900 mb-10 text-center">
                 MD 추천 상품
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                 {[1, 2, 3, 4].map((item) => (
                     <div key={item} className="group relative">
-                        <div className="aspect-h-1 aspect-w-1 w-full overflow-hidden rounded-md bg-gray-200 lg:aspect-none group-hover:opacity-75 lg:h-80">
+                        <div className="aspect-[3/4] w-full overflow-hidden rounded-lg bg-gray-200 lg:aspect-none group-hover:opacity-75 lg:h-80 relative shadow-sm">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={`https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=500&q=60`} alt="Product" className="h-full w-full object-cover object-center lg:h-full lg:w-full" />
+                            <img src={`https://images.unsplash.com/photo-${item === 1 ? '1591047139829-d91aecb6caea' : item === 2 ? '1523205771623-e0faa4d2813d' : item === 3 ? '1521572163474-6864f9cf17ab' : '1506629082955-511b1aa00218'}?auto=format&fit=crop&w=500&q=60`} alt="Product" className="h-full w-full object-cover object-center lg:h-full lg:w-full" />
                         </div>
                         <div className="mt-4 flex justify-between">
                             <div>
-                                <h3 className="text-sm text-gray-700">
-                                    <a href="#">
+                                <h3 className="text-base font-medium text-gray-900">
+                                    <Link href="/products/all">
                                         <span aria-hidden="true" className="absolute inset-0"></span>
-                                        멋진 상품 {item}
-                                    </a>
+                                        추천 상품 {item}
+                                    </Link>
                                 </h3>
-                                <p className="mt-1 text-sm text-gray-500">Black</p>
+                                <p className="mt-1 text-sm text-gray-500">Premium Quality</p>
                             </div>
-                            <p className="text-sm font-medium text-gray-900">₩35,000</p>
+                            <p className="text-base font-bold text-gray-900">₩{ (30000 + item * 5000).toLocaleString() }</p>
                         </div>
                     </div>
                 ))}

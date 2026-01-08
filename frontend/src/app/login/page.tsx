@@ -47,18 +47,20 @@ export default function LoginPage() {
         <div className="relative w-[70%] bg-gray-100">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="https://images.unsplash.com/photo-1616763355603-9755a640a287?ixlib=rb-1.2.1&auto=format&fit=crop&w=1470&q=80"
+            src="/loginpage.jpg"
             alt="Login Background"
             className="absolute inset-0 w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-black/40 flex items-center px-12 z-10">
-            <div>
-              <h2 className="text-4xl font-bold text-white leading-tight">
-                Backend Developer<br/>Portfolio Project
+            <div className='relative bottom-60'>
+              <h2 className="text-6xl font-bold text-white leading-tight">
+                Cosmos
               </h2>
-              <p className="mt-4 text-gray-200 text-lg">
-                Next.js + Express + Prisma<br/>
-                완벽한 풀스택 환경 세팅 완료.
+              <h2 className="text-3xl font-bold text-white leading-tight">
+              The new sensuous passion
+              </h2>
+              <p className="mt-0 text-gray-200 text-lg">
+                your passion mood
               </p>
             </div>
           </div>

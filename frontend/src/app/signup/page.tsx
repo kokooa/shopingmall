@@ -5,6 +5,8 @@ import Link from 'next/link';
 import axios from 'axios'; // 👈 통신 도구
 import { useRouter } from 'next/navigation'; // 👈 페이지 이동 도구
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 export default function SignupPage() {
   const router = useRouter(); // 이동 도구 장전
   
@@ -24,7 +26,7 @@ export default function SignupPage() {
 
     try {
       // ⭐ 백엔드(8080)로 회원가입 요청 발사!
-      const response = await axios.post('https://shopingmall.onrender.com/api/users/signup', {
+      const response = await axios.post('${API_URL}/api/users/signup', {
         name: name,
         email: email,
         password: password

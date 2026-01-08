@@ -14,6 +14,8 @@ interface Product {
   imageUrl: string;
 }
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 export default function CategoryPage() {
   const params = useParams();
   const categoryName = params.category as string;
@@ -28,8 +30,8 @@ export default function CategoryPage() {
       try {
         setLoading(true);
         // category가 'all'이면 전체 조회, 아니면 해당 카테고리만 조회
-        // 백엔드 API: GET https://shopingmall.onrender.com/api/products?category=...
-        const response = await axios.get(`https://shopingmall.onrender.com/api/products`, {
+        // 백엔드 API: GET ${API_URL}/api/products?category=...
+        const response = await axios.get(`${API_URL}/api/products`, {
           params: { category: categoryName }
         });
         
