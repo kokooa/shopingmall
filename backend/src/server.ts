@@ -7,7 +7,10 @@ import CartRouter from './routes/CartRouter';
 const app = express();
 const PORT = 4000;
 
-app.use(cors({ origin: 'https://shopingmall-lovat.vercel.app', credentials: true }));
+app.use(cors({ origin: '*',
+     credentials: true }));
+
+// app.use(cors({ origin: 'https://shopingmall-lovat.vercel.app', credentials: true }));
 app.use(express.json());
 
 app.use('/api/users', UserRouter);
