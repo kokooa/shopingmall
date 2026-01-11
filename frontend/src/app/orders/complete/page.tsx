@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useEffect } from 'react';
+import React, { useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 
-export default function OrderCompletePage() {
+function OrderCompleteContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const orderId = searchParams.get('orderId');
@@ -58,5 +58,13 @@ export default function OrderCompletePage() {
 
       </div>
     </div>
+  );
+}
+
+export default function OrderCompletePage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <OrderCompleteContent />
+    </Suspense>
   );
 }

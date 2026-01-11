@@ -200,6 +200,99 @@ export default function Home() {
         </div>
       </section>
 
+      {/* 4-2. Category Collection */}
+      <section className="py-20 bg-gray-50">
+        <div className="container mx-auto px-6">
+            <h2 className="text-2xl font-bold mb-10 text-center uppercase tracking-widest">Shop by Category</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <Link href="/products/outer" className="group relative h-96 overflow-hidden">
+                    <Image 
+                        src="https://images.unsplash.com/photo-1591047139829-d91aecb6caea?q=80&w=1000&auto=format&fit=crop" 
+                        alt="Outer" 
+                        fill 
+                        className="object-cover transition duration-700 group-hover:scale-110 brightness-75 group-hover:brightness-90" 
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <span className="text-white text-3xl font-bold border-b-2 border-transparent group-hover:border-white pb-2 transition-all uppercase tracking-widest">Outer</span>
+                    </div>
+                </Link>
+                 <Link href="/products/top" className="group relative h-96 overflow-hidden">
+                    <Image 
+                        src="https://images.unsplash.com/photo-1434389677669-e08b4cac3105?q=80&w=1000&auto=format&fit=crop" 
+                        alt="Top" 
+                        fill 
+                        className="object-cover transition duration-700 group-hover:scale-110 brightness-75 group-hover:brightness-90" 
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <span className="text-white text-3xl font-bold border-b-2 border-transparent group-hover:border-white pb-2 transition-all uppercase tracking-widest">Top</span>
+                    </div>
+                </Link>
+                 <Link href="/products/bottom" className="group relative h-96 overflow-hidden">
+                    <Image 
+                        src="https://images.unsplash.com/photo-1542272617-08f08637533e?q=80&w=1000&auto=format&fit=crop" 
+                        alt="Bottom" 
+                        fill 
+                        className="object-cover transition duration-700 group-hover:scale-110 brightness-75 group-hover:brightness-90" 
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <span className="text-white text-3xl font-bold border-b-2 border-transparent group-hover:border-white pb-2 transition-all uppercase tracking-widest">Bottom</span>
+                    </div>
+                </Link>
+            </div>
+        </div>
+      </section>
+
+      {/* 4-3. Best Sellers */}
+      <section className="py-24 bg-white">
+         <div className="container mx-auto px-6">
+            <div className="text-center mb-16">
+                <h2 className="text-3xl font-bold mb-4">BEST SELLERS</h2>
+                <p className="text-gray-500">지금 가장 사랑받는 아이템</p>
+            </div>
+            
+            {loading ? (
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+                     {/* Loading Skeleton */}
+                     {[1,2,3,4].map(i => (
+                        <div key={i} className="bg-gray-100 h-80 w-full animate-pulse rounded-lg"></div>
+                     ))}
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                    {/* 보여줄 데이터가 없으면 Mock Data라도 보여줘서 UI 확인 (실제로는 products 사용) */}
+                    {(products.length > 0 ? products.slice(0, 4).reverse() : []).map((product) => (
+                         <Link href={`/products/${product.id}`} key={`best-${product.id}`} className="group block">
+                            <div className="relative aspect-[3/4] w-full overflow-hidden bg-gray-100 rounded-lg mb-4">
+                                <Image
+                                    src={product.imageUrl}
+                                    alt={product.name}
+                                    fill
+                                    className="object-cover object-center group-hover:scale-105 transition-transform duration-500"
+                                />
+                                <div className="absolute top-2 left-2 bg-black text-white text-[10px] font-bold px-2 py-1 uppercase tracking-wider">
+                                    Best
+                                </div>
+                            </div>
+                            <h3 className="text-sm font-medium text-gray-900 group-hover:underline decoration-1 underline-offset-4 mb-1">
+                                {product.name}
+                            </h3>
+                            <p className="text-sm font-bold text-gray-900">
+                                {Number(product.price).toLocaleString()}원
+                            </p>
+                         </Link>
+                    ))}
+                    
+                    {/* 데이터가 없을 때를 대비한 Empty State (선택사항) */}
+                    {products.length === 0 && !loading && (
+                        <div className="col-span-full text-center text-gray-400 py-10">
+                            베스트 상품을 준비 중입니다.
+                        </div>
+                    )}
+                </div>
+            )}
+         </div>
+      </section>
+
       {/* 5. 하단 프로모션 배너 */}
       <section className="py-20 bg-black text-white text-center">
             <div className="container mx-auto px-6">
