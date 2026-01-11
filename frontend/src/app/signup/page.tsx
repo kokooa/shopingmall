@@ -2,15 +2,12 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import axios from 'axios'; // 👈 통신 도구
-import { useRouter } from 'next/navigation'; // 👈 페이지 이동 도구
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+import { useRouter } from 'next/navigation';
+import { signUp } from '../../api/authAPi'; //
 
 export default function SignupPage() {
-  const router = useRouter(); // 이동 도구 장전
+  const router = useRouter();
   
-  // 백엔드 DB 스키마에 맞춰서 변수명 설정 (name, email, password)
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -25,35 +22,29 @@ export default function SignupPage() {
     }
 
     try {
-      // ⭐ 백엔드(8080)로 회원가입 요청 발사!
-      const response = await axios.post('${API_URL}/api/users/signup', {
-        name: name,
-        email: email,
-        password: password
+      await signUp({
+        name,
+        email,
+        password
       });
 
-      console.log("회원가입 성공:", response.data);
       alert("회원가입이 완료되었습니다! 로그인해주세요.");
-      
-      // 성공 시 로그인 페이지로 이동
       router.push('/login'); 
 
     } catch (error: any) {
       console.error("회원가입 실패:", error);
-      // 백엔드에서 보낸 에러 메시지 띄우기 (없으면 기본 메시지)
-      alert(error.response?.data?.message || "회원가입 중 오류가 발생했습니다.");
+      // 에러 메시지 처리 (Global Error Handler가 보내준 메시지)
+      const errorMessage = error.response?.data?.message || "회원가입 실패";
+      alert(errorMessage);
     }
   };
 
   return (
     <div className="bg-white dark:bg-gray-900 min-h-screen flex items-center justify-center">
       <div className="w-full max-w-sm mx-auto overflow-hidden bg-white rounded-lg shadow-md dark:bg-gray-800 p-6">
-        {/* ... (디자인 코드는 기존과 동일, 생략 없이 그대로 두세요) ... */}
-        {/* 디자인 코드가 필요하면 아까 드린 코드 그대로 유지하면 됩니다. 
-            바뀐 건 위쪽 handleSubmit 부분입니다. */}
-            
-            {/* ... 폼 부분 ... */}
-            <form onSubmit={handleSubmit} className="mt-6">
+        {/* ... 디자인 코드 유지 ... */}
+         <form onSubmit={handleSubmit} className="mt-6">
+             {/* ... input 태그들 그대로 유지 ... */}
              <div className="w-full mt-4">
               <input
                 type="text"
@@ -73,7 +64,6 @@ export default function SignupPage() {
                 className="block w-full px-4 py-2 mt-2 text-gray-700 placeholder-gray-500 bg-white border rounded-lg dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-400 focus:border-blue-400 dark:focus:border-blue-300 focus:ring-opacity-40 focus:outline-none focus:ring focus:ring-blue-300"
               />
             </div>
-            {/* ... 비밀번호 입력창들 (기존 유지) ... */}
              <div className="w-full mt-4">
               <input
                 type="password"

@@ -23,6 +23,8 @@ model User {
   name      String?
   createdAt DateTime @default(now())
 
+  orders Order[]
+  role      String    @default("USER")
   cart      Cart?    // 👈 추가: 유저는 장바구니를 가질 수도, 안 가질 수도 있음 (1:1)
 }
 
@@ -36,6 +38,7 @@ model Product {
   description String?
   createdAt   DateTime @default(now())
 
+  orderItems OrderItem[]
   cartItems   CartItem[] // 👈 추가: 이 상품은 여러 장바구니에 담길 수 있음 (1:N)
 }
 
@@ -68,4 +71,45 @@ model CartItem {
   quantity  Int      @default(1)
 
   createdAt DateTime @default(now())
+}
+
+// 1. 주문 (영수증 역할)
+model Order {
+  id            Int         @id @default(autoincrement())
+  userId        Int
+  user          User        @relation(fields: [userId], references: [id])
+  
+  orderItems    OrderItem[] // 주문한 상품 목록
+  
+  totalAmount   Int         // 총 결제 금액
+  status        OrderStatus @default(PENDING) // 주문 상태 (대기, 완료, 취소 등)
+  
+  // 결제 관련 정보 (포트원 연동용)
+  merchantUid   String      @unique // 주문 번호 (우리가 만든 고유 ID)
+  impUid        String?     // 포트원 결제 고유 ID (결제 성공 시 저장)
+  
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+// 2. 주문 상세 아이템 (영수증 세부 내역)
+model OrderItem {
+  id        Int      @id @default(autoincrement())
+  orderId   Int
+  order     Order    @relation(fields: [orderId], references: [id])
+  
+  productId Int
+  product   Product  @relation(fields: [productId], references: [id])
+  
+  quantity  Int      // 주문 수량
+  price     Int      // 구매 당시 가격 (상품 가격이 나중에 변해도 이건 고정되어야 함!)
+}
+
+// 3. 주문 상태 Enum (오타 방지)
+enum OrderStatus {
+  PENDING   // 결제 대기
+  PAID      // 결제 완료
+  SHIPPED   // 배송 중
+  DELIVERED // 배송 완료
+  CANCELLED // 주문 취소
 }

@@ -17,7 +17,7 @@ export default function LoginPage() {
     e.preventDefault();
     try {
       // 백엔드 주소 확인 필수
-      const response = await axios.post(`${API_URL}/api/users/login`, {
+      const response = await axios.post(`${API_URL}/api/auth/login`, {
         email: email,
         password: password
       });
@@ -29,6 +29,8 @@ export default function LoginPage() {
       if (response.data.user && response.data.user.id) {
             localStorage.setItem('userId', String(response.data.user.id));
         }
+        
+      localStorage.setItem('token', response.data.token);
       alert("로그인 되었습니다!");
       router.push('/');
     } catch (error: any) {

@@ -59,9 +59,6 @@ export default function CategoryPage() {
             <Link href="/products/top" className="hover:text-black">TOP</Link>
             <Link href="/products/bottom" className="hover:text-black">BOTTOM</Link>
           </div>
-          <Link href="/admin/upload" className="px-4 py-2 bg-gray-100 text-gray-800 rounded text-sm font-bold hover:bg-gray-200">
-            + 상품등록
-          </Link>
         </div>
       </nav>
 

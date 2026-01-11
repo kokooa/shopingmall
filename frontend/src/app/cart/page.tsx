@@ -1,9 +1,19 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
 import Link from 'next/link';
+import Image from 'next/image';
+import Script from 'next/script'; // 👈 포트원 스크립트 로드용
 import { useRouter } from 'next/navigation';
+import { getCartItems, removeCartItem, updateCartItem } from '@/api/cartApi';
+import api from '../../api/axios';
+
+// TypeScript에서 window.IMP를 인식하도록 선언
+declare global {
+  interface Window {
+    IMP: any;
+  }
+}
 
 interface CartItem {
   id: number;
@@ -17,186 +27,204 @@ interface CartItem {
   };
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
-
 export default function CartPage() {
   const router = useRouter();
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  
-  // 1. 장바구니 목록 불러오기
+  // 데이터 불러오기
   useEffect(() => {
-    const fetchCart = async () => {
-      const userId = localStorage.getItem('userId');
-      if (!userId) {
-        alert("로그인이 필요합니다.");
-        router.push('/login');
-        return;
-      }
-
-      try {
-        const response = await axios.get(`${API_URL}/api/cart/${userId}`);
-        if (response.data && response.data.items) {
-            setCartItems(response.data.items);
-        }
-      } catch (error) {
-        console.error("장바구니 로딩 실패:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchCart();
-  }, [router]);
+  }, []);
 
-  // 2. 삭제 기능
-  const removeItem = async (itemId: number) => {
-    if (!confirm("정말 삭제하시겠습니까?")) return;
+  const fetchCart = async () => {
     try {
-        await axios.delete(`${API_URL}/api/cart/${itemId}`);
-        setCartItems(prev => prev.filter(item => item.id !== itemId));
+      const token = localStorage.getItem('accessToken'); // 혹은 'token'
+      if (!token) {
+        // 로그인 안 되어 있으면 로그인 페이지로
+        return; 
+      }
+      const data = await getCartItems();
+      setCartItems(Array.isArray(data) ? data : data.list || []);
     } catch (error) {
-        alert("삭제 실패");
+      console.error("장바구니 로딩 실패", error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  // ⭐ [3. 수량 변경 기능] - 새로 추가됨
-  const updateQuantity = async (itemId: number, currentQty: number, change: number) => {
+  const handleQuantityChange = async (itemId: number, currentQty: number, change: number) => {
     const newQty = currentQty + change;
-    
-    // 1개 밑으로는 못 내려가게 막음
     if (newQty < 1) return;
-
     try {
-        // (1) 화면부터 먼저 업데이트 (반응속도 빠르게 하기 위해)
-        setCartItems(prev => prev.map(item => 
-            item.id === itemId ? { ...item, quantity: newQty } : item
-        ));
-
-        // (2) 백엔드에 조용히 저장
-        await axios.patch(`${API_URL}/api/cart/${itemId}`, {
-            quantity: newQty
-        });
-
+      setCartItems(prev => prev.map(item => item.id === itemId ? { ...item, quantity: newQty } : item));
+      await updateCartItem(itemId, newQty);
     } catch (error) {
-        console.error("수량 변경 실패:", error);
-        alert("수량 변경에 실패했습니다.");
-        // 실패하면 원래대로 돌리는 로직이 있으면 좋지만 일단 생략
+      console.error(error);
+      fetchCart();
     }
   };
 
-  // 4. 총 가격 계산
-  const totalPrice = cartItems.reduce((acc, item) => {
-    return acc + (item.product.price * item.quantity);
-  }, 0);
+  const handleRemove = async (itemId: number) => {
+    if (!confirm("삭제하시겠습니까?")) return;
+    try {
+      await removeCartItem(itemId);
+      setCartItems(prev => prev.filter(item => item.id !== itemId));
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
-  if (loading) return <div className="text-center py-20">Loading...</div>;
+  const subtotal = cartItems.reduce((acc, item) => acc + (Number(item.product.price) * item.quantity), 0);
+  const shippingCost = subtotal > 50000 ? 0 : 3000;
+  const total = subtotal + shippingCost;
+
+  // ⭐⭐⭐ [핵심] 결제 요청 함수 ⭐⭐⭐
+  const requestPay = () => {
+    if (!window.IMP) return;
+
+    const impCode = process.env.NEXT_PUBLIC_PORTONE_IMP_CODE;
+    
+    console.log("내 식별코드:", impCode); 
+
+    if (!impCode) {
+      alert("식별코드를 못 불러왔습니다! .env 확인 필요");
+      return;
+    }
+
+    // 1. 초기화 (본인의 가맹점 식별코드를 넣으세요!)
+    const { IMP } = window;
+    IMP.init(impCode); // 👈 여기를 포트원 관리자 페이지에서 복사한 코드로 변경!!
+
+    // 2. 주문명 만들기 (예: "오버핏 코트 외 2건")
+    let orderName = "주문 상품";
+    if (cartItems.length > 0) {
+        orderName = cartItems[0].product.name;
+        if (cartItems.length > 1) {
+            orderName += ` 외 ${cartItems.length - 1}건`;
+        }
+    }
+
+    // 3. 결제 데이터 설정
+    const data = {
+      pg: 'kakaopay',            // PG사 (kakaopay, html5_inicis, tosspay 등)
+      pay_method: 'card',         // 결제수단
+      merchant_uid: `mid_${new Date().getTime()}`, // 주문번호 (나중엔 백엔드에서 생성해야 함)
+      name: orderName,            // 주문명
+      amount: total,              // 결제금액
+      buyer_email: 'test@portone.io', // 구매자 이메일 (나중엔 로그인 유저 정보 넣기)
+      buyer_name: '테스트 유저',      // 구매자 이름
+      buyer_tel: '010-1234-5678',     // 구매자 전화번호
+    };
+
+    // 4. 결제 창 호출
+    IMP.request_pay(data, callback);
+  };
+
+  // 5. 결제 결과 처리 콜백
+  const callback = async (response: any) => {
+    const { success, error_msg, imp_uid, merchant_uid } = response;
+
+    if (success) {
+      try {
+        const res = await api.post('/api/orders/complete', { // /api 붙인거 유지!
+           imp_uid,
+           merchant_uid
+      });
+        
+        const orderId = res.data.orderId;
+
+        alert("주문이 성공적으로 완료되었습니다!");
+
+        router.push(`/orders/complete?orderId=${orderId}`);
+        
+      } catch (error) {
+        console.error(error);
+        alert("결제는 성공했으나 주문 저장에 실패했습니다. 고객센터로 문의해주세요.");
+      }
+    } else {
+      alert(`결제 실패: ${error_msg}`);
+    }
+  };
+
+  if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
 
   return (
-    <div className="bg-white min-h-screen font-sans text-gray-900">
-      <nav className="sticky top-0 z-50 bg-white border-b border-gray-200">
-        <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-          <Link href="/" className="text-2xl font-bold text-gray-800">My Shop</Link>
-          <div className="font-bold text-lg">SHOPPING CART</div>
-        </div>
-      </nav>
+    <div className="bg-white min-h-screen pt-24 pb-20 font-sans">
+      
+      {/* 👇 포트원 SDK 스크립트 로드 (필수) */}
+      <Script 
+        src="https://cdn.iamport.kr/v1/iamport.js" 
+        strategy="lazyOnload" // 페이지 로드 후 천천히 불러오기
+      />
 
-      <main className="container mx-auto px-6 py-12">
-        <h1 className="text-3xl font-extrabold mb-8">장바구니 ({cartItems.length})</h1>
+      <div className="container mx-auto px-6">
+        <h1 className="text-3xl font-bold mb-10 tracking-tight text-gray-900">SHOPPING BAG</h1>
 
         {cartItems.length === 0 ? (
-          <div className="text-center py-20 bg-gray-50 rounded-lg">
-            <p className="text-gray-500 mb-4">장바구니가 비어있습니다.</p>
-            <Link href="/products/all" className="inline-block px-6 py-3 bg-black text-white rounded-md font-bold hover:bg-gray-800">
-              쇼핑하러 가기
+          <div className="text-center py-20 border-t border-b border-gray-100">
+            <p className="text-gray-500 mb-6 text-lg">장바구니가 비어있습니다.</p>
+            <Link href="/products/all" className="inline-block px-8 py-3 bg-black text-white text-sm font-bold uppercase hover:bg-gray-800 transition">
+              Start Shopping
             </Link>
           </div>
         ) : (
-          <div className="lg:flex lg:gap-12">
+          <div className="flex flex-col lg:flex-row gap-12">
             
-            <div className="lg:w-2/3 space-y-6">
-              {cartItems.map((item) => (
-                <div key={item.id} className="flex gap-4 p-4 border rounded-lg hover:shadow-md transition bg-white items-center">
-                  
-                  {/* 이미지 */}
-                  <div className="w-24 h-32 flex-shrink-0 bg-gray-200 rounded overflow-hidden">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={item.product.imageUrl} alt={item.product.name} className="w-full h-full object-cover" />
-                  </div>
-                  
-                  {/* 정보 & 수량 조절 */}
-                  <div className="flex-1 flex flex-col justify-between h-32 py-1">
-                    <div>
-                      <h3 className="font-bold text-lg">{item.product.name}</h3>
-                      <p className="text-sm text-gray-500">{item.product.category.toUpperCase()}</p>
+            {/* 왼쪽: 장바구니 목록 (기존 코드 유지) */}
+            <div className="flex-1">
+              <div className="border-t border-gray-200">
+                {cartItems.map((item) => (
+                  <div key={item.id} className="flex py-6 border-b border-gray-100 items-center">
+                    <div className="relative w-24 h-32 flex-shrink-0 bg-gray-100 rounded overflow-hidden mr-6 cursor-pointer" onClick={() => router.push(`/products/${item.product.id}`)}>
+                      <Image src={item.product.imageUrl} alt={item.product.name} fill className="object-cover" />
                     </div>
-
-                    <div className="flex justify-between items-end">
-                      
-                      {/* ⭐ 수량 조절 버튼 UI */}
-                      <div className="flex items-center border border-gray-300 rounded">
-                        <button 
-                            onClick={() => updateQuantity(item.id, item.quantity, -1)}
-                            className="px-3 py-1 hover:bg-gray-100 text-gray-600 disabled:opacity-30"
-                            disabled={item.quantity <= 1} // 1개면 마이너스 버튼 비활성화
-                        >
-                            -
-                        </button>
-                        <span className="px-3 py-1 font-bold text-sm min-w-[30px] text-center border-x border-gray-300">
-                            {item.quantity}
-                        </span>
-                        <button 
-                            onClick={() => updateQuantity(item.id, item.quantity, 1)}
-                            className="px-3 py-1 hover:bg-gray-100 text-gray-600"
-                        >
-                            +
-                        </button>
+                    <div className="flex-1">
+                      <div className="flex justify-between mb-2">
+                        <h3 className="text-sm font-medium text-gray-900">{item.product.name}</h3>
+                        <p className="text-sm font-bold text-gray-900">{Number(item.product.price * item.quantity).toLocaleString()}원</p>
                       </div>
-
-                      <p className="font-bold text-lg">₩{(item.product.price * item.quantity).toLocaleString()}</p>
+                      <p className="text-xs text-gray-500 mb-4">{item.product.category}</p>
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center border border-gray-300 rounded">
+                          <button onClick={() => handleQuantityChange(item.id, item.quantity, -1)} className="px-3 py-1 hover:bg-gray-100 text-gray-600">-</button>
+                          <span className="px-3 py-1 text-sm font-medium min-w-[30px] text-center">{item.quantity}</span>
+                          <button onClick={() => handleQuantityChange(item.id, item.quantity, 1)} className="px-3 py-1 hover:bg-gray-100 text-gray-600">+</button>
+                        </div>
+                        <button onClick={() => handleRemove(item.id)} className="text-xs text-gray-400 underline hover:text-red-500 transition">Remove</button>
+                      </div>
                     </div>
                   </div>
-
-                  {/* 삭제 버튼 */}
-                  <button onClick={() => removeItem(item.id)} className="text-gray-400 hover:text-red-500 p-2 ml-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-                    </svg>
-                  </button>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
 
-            {/* 오른쪽: 주문 요약 */}
-            <div className="lg:w-1/3 mt-8 lg:mt-0">
-              <div className="bg-gray-50 p-6 rounded-lg sticky top-24">
-                <h2 className="text-xl font-bold mb-6">주문 요약</h2>
-                
-                <div className="flex justify-between mb-4">
-                  <span className="text-gray-600">총 상품 금액</span>
-                  <span className="font-medium">₩{totalPrice.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between mb-4">
-                    <span className="text-gray-600">배송비</span>
-                    <span className="font-medium">무료</span>
-                </div>
-                <div className="border-t border-gray-200 my-4 pt-4 flex justify-between">
-                    <span className="text-lg font-bold">총 결제 금액</span>
-                    <span className="text-xl font-bold text-blue-600">₩{totalPrice.toLocaleString()}</span>
-                </div>
+            {/* 오른쪽: 결제 요약 (Checkout 버튼 연결) */}
+            <div className="lg:w-96">
+                <div className="bg-gray-50 p-8 rounded-lg sticky top-32">
+                    <h2 className="text-lg font-bold mb-6 text-gray-900">Order Summary</h2>
+                    <div className="flex justify-between mb-4 text-sm"><span className="text-gray-600">Subtotal</span><span className="font-medium">{subtotal.toLocaleString()}원</span></div>
+                    <div className="flex justify-between mb-4 text-sm"><span className="text-gray-600">Shipping</span><span className="font-medium">{shippingCost === 0 ? 'Free' : `${shippingCost.toLocaleString()}원`}</span></div>
+                    <div className="border-t border-gray-200 pt-4 mt-4 mb-8">
+                        <div className="flex justify-between items-end">
+                            <span className="font-bold text-gray-900">Total</span>
+                            <span className="text-2xl font-bold text-gray-900">{total.toLocaleString()}원</span>
+                        </div>
+                    </div>
 
-                <button 
-                  onClick={() => alert("결제 시스템은 PG사 연동이 필요합니다.")}
-                  className="w-full bg-black text-white py-4 rounded-lg font-bold hover:bg-gray-800 transition shadow-lg mt-4"
-                >
-                  구매하기 ({cartItems.length}개)
-                </button>
-              </div>
+                    {/* ✅ Checkout 버튼에 requestPay 함수 연결 */}
+                    <button 
+                        onClick={requestPay}
+                        className="w-full py-4 bg-[#FEE500] text-[#191919] font-bold text-sm uppercase hover:bg-[#FDD835] transition shadow-lg rounded"
+                    >
+                        카카오페이 결제하기
+                    </button>
+                </div>
             </div>
 
           </div>
         )}
-      </main>
+      </div>
     </div>
   );
 }

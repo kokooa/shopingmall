@@ -1,5 +1,6 @@
 "use client";
 
+import { addToCart } from '../../../../api/cartApi';
 import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation'; // useRouter 필수!
 import axios from 'axios';
@@ -38,34 +39,33 @@ export default function ProductDetailPage() {
     if (productId) fetchProduct();
   }, [productId]);
 
-  // ⭐ [핵심] 장바구니 담기 함수 (이게 있어야 함!)
-  const addToCart = async () => {
-    // 1. 로그인 체크
-    const userId = localStorage.getItem('userId');
-    if (!userId) {
-        // userId가 없으면 로그인하러 가기
+  // ⭐ [핵심] 장바구니 담기 함수 수정
+  const handleAddToCart = async () => {
+    // 1. 로그인 체크 (토큰이 없으면 로그인 페이지로)
+    const token = localStorage.getItem('accessToken'); // 혹은 'token'
+    if (!token) {
         const confirmLogin = confirm("로그인이 필요한 기능입니다. 로그인 하시겠습니까?");
         if (confirmLogin) router.push('/login');
         return;
     }
 
     try {
-        // 2. 백엔드 API 호출 (POST /api/cart)
-        await axios.post('${API_URL}/api/cart', {
-            userId: Number(userId),
-            productId: Number(productId),
-            quantity: 1 
-        });
+        // ✅ [변경 2] axios.post 직접 호출 대신 API 함수 사용
+        // (이 함수가 자동으로 헤더에 토큰을 실어 보냅니다)
+        // 백엔드는 토큰에서 userId를 알 수 있으므로, userId를 따로 보낼 필요가 없습니다.
+        await addToCart(Number(productId), 1);
 
         // 3. 성공 알림
         const goCart = confirm("장바구니에 담겼습니다! 장바구니로 이동할까요?");
         if (goCart) {
-            router.push('/cart'); // (아직 페이지 없으면 404 뜰 수 있음)
+            router.push('/cart');
         }
 
-    } catch (error) {
+    } catch (error: any) {
         console.error(error);
-        alert("장바구니 담기 실패 (백엔드 로그 확인)");
+        // 에러 메시지 보여주기
+        const msg = error.response?.data?.message || "장바구니 담기 실패";
+        alert(msg);
     }
   };
 
@@ -113,7 +113,7 @@ export default function ProductDetailPage() {
             <div className="mt-10 flex gap-4">
               {/* 👇 여기가 수정된 부분입니다! onClick={addToCart} */}
               <button 
-                onClick={addToCart}
+                onClick={handleAddToCart}
                 className="flex-1 bg-white border-2 border-black text-black py-4 rounded-lg font-bold hover:bg-gray-50 transition transform active:scale-95"
               >
                 장바구니 담기
